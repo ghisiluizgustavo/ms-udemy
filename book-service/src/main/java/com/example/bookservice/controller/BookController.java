@@ -1,7 +1,9 @@
 package com.example.bookservice.controller;
 
 import com.example.bookservice.model.Book;
+import com.example.bookservice.proxy.CambioProxy;
 import com.example.bookservice.repository.BookRepository;
+import com.example.bookservice.response.Cambio;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,6 +24,9 @@ public class BookController {
     @Autowired
     private BookRepository bookRepository;
 
+    @Autowired
+    private CambioProxy cambioProxy;
+
     @GetMapping("/{id}/{currency}")
     public Book findBook(@PathVariable Long id, @PathVariable String currency){
 
@@ -31,9 +36,11 @@ public class BookController {
         }
 
         Book book = bookOptional.get();
+        Cambio cambio = cambioProxy.getCambio(book.getPrice(), "USD", currency);
 
         var port = environment.getProperty("local.server.port");
         book.setEnvironment(port);
+        book.setPrice(cambio.getConvertedValue());
 
         return book;
     }
